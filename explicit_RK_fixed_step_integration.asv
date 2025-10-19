@@ -23,22 +23,16 @@ function [t_list,X_list,h_avg, num_evals] = explicit_RK_fixed_step_integration .
     t0=tspan(1);
     tf=tspan(2);
     XA=X0;
-   
+
+    t_list=[];
+    X_list=[];
     N=ceil((tf-t0)/h_ref);
     h_avg=(tf-t0)/N;
     num_evals=0;
 
-    t_list=[];
-    for t=t0:h_avg:tf
+    for t = t0 : h_avg : tf
         t_list(end+1)=t;
-    end
-
-    X_list=zeros(length(X0),length(t_list));
-
-    disp(t_list)
-    for i=1:length(t_list)
-        t=t_list(i);
-        X_list(:,i)=XA;
+        X_list(end+1)=XA;
         [XB,num_evals_i] = explicit_RK_step(rate_func_in,t,XA,h_avg,BT_struct);
         num_evals=num_evals+num_evals_i;
         XA=XB; 

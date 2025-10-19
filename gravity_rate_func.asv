@@ -20,11 +20,17 @@ function dVdt = gravity_rate_func(t,V,orbit_params)
     vx = V(3);
     vy = V(4);
 
-    r=[x,y];
+    r2 = x*x + y*y;                  % |r|^2
+    r  = sqrt(r2);
 
-    a=-G*m_sun*r/norm(r)^3;
-
-    ax=a(1);
-    ay=a(2);
+    % avoid dividing by zero
+    if r == 0
+        ax = 0; ay = 0;
+    else
+        % acceleration a = - G*M * r / |r|^3
+        inv_r3 = 1 / (r^3);
+        a = -G*m_sun *  * inv_r3;
+        
+    end
     dVdt = [vx; vy; ax; ay];
 end
