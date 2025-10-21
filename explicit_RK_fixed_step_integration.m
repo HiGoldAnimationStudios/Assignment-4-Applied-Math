@@ -44,3 +44,19 @@ function [t_list,X_list,h_avg, num_evals] = explicit_RK_fixed_step_integration .
         XA=XB; 
     end
 end
+
+
+N=ceil((tspan(2)-tspan(1))/h_ref);
+    h_avg=(tspan(2)-tspan(1))/N;
+
+    t_list=linspace(tspan(1),tspan(2),N+1);
+    X_list=zeros(N+1,length(X0));
+
+    X_list(1,:)=X0';
+    num_evals=0;
+
+    for m=1:N
+        [XB, num_evals_temp] = explicit_RK_step(rate_func_in,t_list(m),X_list(m,:)',h_avg,BT_struct);
+        num_evals=num_evals+num_evals_temp;
+        X_list(m+1,:)=XB';
+    end

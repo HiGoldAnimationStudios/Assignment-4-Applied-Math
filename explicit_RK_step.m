@@ -20,7 +20,7 @@ function [XB, num_evals] = explicit_RK_step(rate_func_in,t,XA,h,BT_struct)
     A=BT_struct.A;
     B=BT_struct.B;
     C=BT_struct.C;
-    s=length(A);
+    s=length(C);
     m=length(XA);
     K=zeros(m,s); 
     
