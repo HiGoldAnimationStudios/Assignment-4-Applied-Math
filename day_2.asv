@@ -1,8 +1,4 @@
-%unused
-
-%alpha is the maximum multiplier for step size increase
-
-function main_runner()
+function day_2()
 
     DormandPrince = struct();
     DormandPrince.C = [0, 1/5, 3/10, 4/5, 8/9, 1, 1];
@@ -24,11 +20,26 @@ function main_runner()
 
     [XB1, XB2, num_evals] = RK_step_embedded(my_rate,t,XA,h,DormandPrince);
 
-    disp(XB1)
-    disp(XB2)
-    disp(num_evals)
+    % disp(['XB1 = ', num2str(XB1)])
+    % disp(['XB2 = ', num2str(XB2)])
+    % disp(['num_evals = ', num2str(num_evals)])
 
     X = solution01(t+h);
-    disp(X)
-   
+    %disp(['X(',num2str(t+h),') = ',num2str(X)])
+    
+    XB_diff = norm(XB1 - XB2);
+
+    %disp(XB_diff)
+ 
+    %plotting XB_diff vs h_ref_list at one specific time constant
+    n_samples=60;
+    h_ref_list=logspace(-6,1,n_samples);
+    XB_diff_list = zeros(1,n_samples);
+
+    for i = length(h_ref_list)
+        
+        h = h_ref_list(i); 
+        [XB1, XB2, num_evals] = RK_step_embedded(my_rate,t,XA,h,DormandPrince);
+
+    end 
 end 
