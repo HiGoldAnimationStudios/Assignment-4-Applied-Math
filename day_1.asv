@@ -24,81 +24,112 @@ function day_1()
     h_ref=0.02;
     
     %Forward Euler
-    BT_struct=struct();
-    BT_struct.A=[0];
-    BT_struct.B=[1];
-    BT_struct.C=[0];
+    Forward_Euler=struct();
+    Forward_Euler.A=[0];
+    Forward_Euler.B=[1];
+    Forward_Euler.C=[0];
     
-    
-    [t_list,X_list,h_avg, num_evals] = explicit_RK_fixed_step_integration(my_rate_func,tspan,V0,h_ref,BT_struct);
+    [t_list_FE,X_list_FE,h_avg_FE, num_evals_FE] = explicit_RK_fixed_step_integration(my_rate_func,tspan,V0,h_ref,Forward_Euler);
 
-    figure()
-    subplot(2,1,1);
-    hold on;
+    figure(); 
+    subplot(2,1,1); hold on;
     plot(t_range,V_list(:,1),"r")
     plot(t_range,V_list(:,2),"b")
+    plot(t_list_FE,X_list_FE(:,1),"r--")
+    plot(t_list_FE,X_list_FE(:,2),"b--")
+    xlabel("time"); ylabel("pos"); title("Forward Euler")
 
-    plot(t_list,X_list(:,1),"r--")
-    plot(t_list,X_list(:,2),"b--")
-
-    xlabel("time")
-    ylabel("pos")
-
-    title("Forward Euler")
-
-    subplot(2,1,2);
-    hold on;
+    subplot(2,1,2);hold on;
     plot(t_range,V_list(:,3),"r")
     plot(t_range,V_list(:,4),"b")
+    plot(t_list_FE,X_list_FE(:,3),"r--")
+    plot(t_list_FE,X_list_FE(:,4),"b--")
+    xlabel("time"); ylabel("velocity")
 
-    plot(t_list,X_list(:,3),"r--")
-    plot(t_list,X_list(:,4),"b--")
+    %Explict Midpoint
+    Explict_Midpoint=struct();
+    Explict_Midpoint.A=[0, 0; 0.5, 0];
+    Explict_Midpoint.B=[0, 0.5];
+    Explict_Midpoint.C=[0, 1];
 
-    xlabel("time")
-    ylabel("velocity?")
+    [t_list_EM,X_list_EM,h_avg_EM, num_evals_EM] = explicit_RK_fixed_step_integration(my_rate_func,tspan,V0,h_ref,Explict_Midpoint);
 
+    figure(); 
+    subplot(2,1,1); hold on;
+    plot(t_range,V_list(:,1),"r")
+    plot(t_range,V_list(:,2),"b")
+    plot(t_list_EM,X_list_EM(:,1),"r--")
+    plot(t_list_EM,X_list_EM(:,2),"b--")
+    xlabel("time"); ylabel("pos"); title("Explicit Midpoint")
+
+    subplot(2,1,2);hold on;
+    plot(t_range,V_list(:,3),"r")
+    plot(t_range,V_list(:,4),"b")
+    plot(t_list_EM,X_list_EM(:,3),"r--")
+    plot(t_list_EM,X_list_EM(:,4),"b--")
+    xlabel("time"); ylabel("velocity")
 
     %Local Truncation Error
-    n_samples=60;
+    n_samples=30;
     h_ref_list=logspace(-6,1,n_samples);
-    tr_error_list=zeros(1,n_samples);
+    tr_error_list_FE=zeros(1,n_samples);
+    tr_error_list_EM=zeros(1,n_samples);
 
     for n=1:length(h_ref_list)
         h_ref=h_ref_list(n);
         V_list=compute_planetary_motion(tspan(1)+h_ref,V0,orbit_params);
-        [XB,~]=explicit_RK_step(my_rate_func,tspan(1),V0,h_ref,BT_struct);
-        tr_error_list(n)=norm(XB-V_list);
+        %Forward Euler
+        [XB,~]=explicit_RK_step(my_rate_func,tspan(1),V0,h_ref,Forward_Euler);
+        tr_error_list_FE(n)=norm(XB-V_list);
+        %Explicit Midpoint
+        [XB,~]=explicit_RK_step(my_rate_func,tspan(1),V0,h_ref,Explict_Midpoint);
+        tr_error_list_EM(n)=norm(XB-V_list);
     end
 
     filter_parmas=struct();
     filter_parmas.min_y_val=1e-13;
     filter_parmas.max_y_val=1e-6;
 
-    [p,k]=loglog_fit(h_ref_list,tr_error_list,filter_parmas)
+    [p_FE,k_FE]=loglog_fit(h_ref_list,tr_error_list_FE,filter_parmas)
+    [p_EM,k_EM]=loglog_fit(h_ref_list,tr_error_list_EM,filter_parmas)
+
+    hh = logspace(log10(min(h_ref_list)), log10(max(h_ref_list)), 200);
+
 
     figure();
-    loglog(h_ref_list,tr_error_list);
-    title("Local Truncation Error")
-    xlabel("???")
-    ylabel("idfk")
+    loglog(h_ref_list,tr_error_list_FE,'o', 'MarkerSize',5, 'Color',[1 0 0], 'DisplayName','Forward Euler Error');
+    hold on;
+    loglog(hh, k_FE .*hh.^p_FE,'r', 'LineWidth',1, 'DisplayName', sprintf('Forward Euler fit: p=%.2f', p_FE));
+    loglog(h_ref_list,tr_error_list_EM,'o', 'MarkerSize',5, 'Color',[0 1 0], 'DisplayName','Explicit Midpoint Error');
+    loglog(hh, k_EM .*hh.^p_EM,'g', 'LineWidth',1, 'DisplayName', sprintf('Explicit Midpoint fit: p=%.2f', p_EM));
+    title("Local Truncation Error"); xlabel("step size h"); ylabel("local error")
+    legend("Location","best"); hold off
     
     %Global Truncation Error
-    n_samples=60;
+    n_samples=20;
     h_ref_list=logspace(-5,1,n_samples);
 
-    h_avg_list=zeros(1,n_samples);
-    
-    num_evals_list=zeros(1,n_samples);
-    tr_error_list=zeros(1,n_samples);
+    h_avg_list_FE=zeros(1,n_samples);
+    num_evals_list_FE=zeros(1,n_samples);
+    tr_error_list_FE=zeros(1,n_samples);
+
+    h_avg_list_EM=zeros(1,n_samples);
+    num_evals_list_EM=zeros(1,n_samples);
+    tr_error_list_EM=zeros(1,n_samples);
     for n=1:length(h_ref_list)
         h_ref=h_ref_list(n);
 
-        [t_list,X_list,h_avg, num_evals] = explicit_RK_fixed_step_integration(myrate,tspan,V0,h_ref,BT_struct);
+        [t_list_FE,X_list_FE,h_avg_FE, num_evals_FE] = explicit_RK_fixed_step_integration(my_rate_func,tspan,V0,h_ref,Forward_Euler);
+        tr_error=norm(X_list_FE(end,:)-V_list(end,:));
+        tr_error_list_FE(n)=tr_error;
+        num_evals_list_FE(n)=num_evals_FE;
+        h_avg_list_FE(n)=h_avg_FE;
 
-        tr_error=norm(X_list(end,:)-V_list(end,:));
-        tr_error_list(n)=tr_error;
-        num_evals_list(n)=num_evals;
-        h_avg_list(n)=h_avg;
+        [t_list_EM,X_list_EM,h_avg_EM, num_evals_EM] = explicit_RK_fixed_step_integration(my_rate_func,tspan,V0,h_ref,Explict_Midpoint);
+        tr_error=norm(X_list_EM(end,:)-V_list(end,:));
+        tr_error_list_EM(n)=tr_error;
+        num_evals_list_EM(n)=num_evals_EM;
+        h_avg_list_EM(n)=h_avg_EM;
     end
 
     filter_params=struct();
@@ -106,16 +137,22 @@ function day_1()
     filter_params.min_y_val=1e-10;
     filter_params.max_y_val=1;
 
-    [p1,k1]=loglog_fit(h_avg_list,tr_error_list,varagin);
-    [p2,k2]=loglog_fit(num_evals_list,tr_error_list,varagin);
-    abs(p1)
-    abs(p2)
+    [p_FE_h,k_FE_h]=loglog_fit(h_avg_list_FE,tr_error_list_FE,filter_params)   
+    [p_FE_ne,k_FE_ne]=loglog_fit(num_evals_list_FE,tr_error_list_FE,filter_params)  
 
     figure();
-    loglog(h_avg_list,tr_error_list)
-    loglog(h_avg_list,k1*h_avg_list.^p1)
+    loglog(h_avg_list_FE,tr_error_list_FE,"r")
+    hold on;
+    loglog(h_avg_list_FE,k_FE_h*h_avg_list_FE.^p_FE_h,"b")
+
+    title("Global Truncation Error vs Number of Function Calls"); xlabel("step size h"); ylabel("global error")
+    legend("Location","best"); hold off
     
     figure();
-    loglog(num_evals_list,tr_error_list)
-    loglog(num_evals_list,k2*num_evals_list.^p2)
+    loglog(num_evals_list_FE,tr_error_list_FE,"r")
+    hold on;
+    loglog(num_evals_list_FE,k_FE_ne*num_evals_list_FE.^p_FE_ne,"b")
+
+    title("Global Truncation Error vs Number of Function Calls"); xlabel("number of function calls"); ylabel("global error")
+    legend("Location","best"); hold off
 end
