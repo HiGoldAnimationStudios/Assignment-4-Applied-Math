@@ -16,36 +16,39 @@ function day_2()
     XA = 1;
     h = 0.5;
     my_rate = @(t, XA) rate_func01(t,XA);
-
-
     [XB1, XB2, num_evals] = RK_step_embedded(my_rate,t,XA,h,DormandPrince);
-
-    % disp(['XB1 = ', num2str(XB1)])
-    % disp(['XB2 = ', num2str(XB2)])
-    % disp(['num_evals = ', num2str(num_evals)])
-
-    X = solution01(t+h);
-    %disp(['X(',num2str(t+h),') = ',num2str(X)])
-    
+    X = solution01(t+h) ;
     XB_diff = norm(XB1 - XB2);
 
-    %disp(XB_diff)
- 
-    %plotting XB_diff vs h_ref_list at one specific time constant
+
+    %plotting XB_diff vs h_ref_list at one specific time constant (t=1)
     n_samples=160;
     h_ref_list=logspace(-6,1,n_samples);
     XB_diff_list = zeros(1,n_samples);
 
-    for i = length(h_ref_list)
-        
+    t=1;
+    XA=solution01(t);
+    for i = 1:length(h_ref_list)
         h = h_ref_list(i); 
         [XB1, XB2, ~] = RK_step_embedded(my_rate,t,XA,h,DormandPrince);
+        %XB_diff vs h_ref_lis
         XB_diff = norm(XB1 - XB2);
         XB_diff_list(i) = XB_diff;
-        
     end 
     
-    disp(XB_diff_list)
-    figure; 
-    plot(h_ref_list, XB_diff_list)
+    filter_params=struct();
+    filter_params.min_yval=1e-10;
+    filter_params.max_yval=1e7;
+    filter_params.max_xval=1e1;
+    filter_params.min_xval=1e-1;
+
+    [p,k]=loglog_fit(h_ref_list,XB_diff_list,filter_params)   
+
+    figure(); 
+    loglog(h_ref_list, XB_diff_list, "r", "DisplayName", "XB2-XB1")
+    hold on;
+    loglog(h_ref_list,k*h_ref_list.^p,"b", 'DisplayName','Fit Line')
+    xlabel("h_r_e_f")
+    ylabel("XB2-XB1")
+    title("Difference in XBs vs h_r_e_f at time t=1")
 end 

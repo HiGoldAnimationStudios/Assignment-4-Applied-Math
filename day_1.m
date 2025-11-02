@@ -64,7 +64,7 @@ function day_1()
     plot(t_range,V_list(:,2),"b")
     plot(t_list_FE,X_list_FE(:,1),"r--")
     plot(t_list_FE,X_list_FE(:,2),"b--")
-    xlabel("time"); ylabel("pos"); title("Forward Euler")
+    xlabel("time"); ylabel("pos"); title("Forward Euler Method")
 
     subplot(2,1,2);hold on;
     plot(t_range,V_list(:,3),"r")
@@ -73,7 +73,7 @@ function day_1()
     plot(t_list_FE,X_list_FE(:,4),"b--")
     xlabel("time"); ylabel("velocity")
 
-    
+    BT_struct=Explict_Midpoint;
 
     [t_list_EM,X_list_EM,h_avg_EM, num_evals_EM] = explicit_RK_fixed_step_integration(my_rate_func,tspan,V0,h_ref,BT_struct);
 
@@ -83,13 +83,34 @@ function day_1()
     plot(t_range,V_list(:,2),"b")
     plot(t_list_EM,X_list_EM(:,1),"r--")
     plot(t_list_EM,X_list_EM(:,2),"b--")
-    xlabel("time"); ylabel("pos"); title("Explicit Midpoint")
+    xlabel("time"); ylabel("pos"); title("Explicit Midpoint Method")
 
     subplot(2,1,2);hold on;
     plot(t_range,V_list(:,3),"r")
     plot(t_range,V_list(:,4),"b")
     plot(t_list_EM,X_list_EM(:,3),"r--")
     plot(t_list_EM,X_list_EM(:,4),"b--")
+    xlabel("time"); ylabel("velocity")
+
+    BT_struct=Heun_Third;
+
+    BT_struct = Forward_Euler;
+    
+    [t_list_FE,X_list_FE,h_avg_FE, num_evals_FE] = explicit_RK_fixed_step_integration(my_rate_func,tspan,V0,h_ref,BT_struct);
+
+    figure(); 
+    subplot(2,1,1); hold on;
+    plot(t_range,V_list(:,1),"r")
+    plot(t_range,V_list(:,2),"b")
+    plot(t_list_FE,X_list_FE(:,1),"r--")
+    plot(t_list_FE,X_list_FE(:,2),"b--")
+    xlabel("time"); ylabel("pos"); title("Heun's Third Order Method")
+
+    subplot(2,1,2);hold on;
+    plot(t_range,V_list(:,3),"r")
+    plot(t_range,V_list(:,4),"b")
+    plot(t_list_FE,X_list_FE(:,3),"r--")
+    plot(t_list_FE,X_list_FE(:,4),"b--")
     xlabel("time"); ylabel("velocity")
 
     %Local Truncation Error
@@ -184,7 +205,7 @@ function day_1()
     figure();
     loglog(h_avg_list_FE,tr_error_list_FE,'o', 'MarkerSize',5, 'Color','r', 'DisplayName','Forward Euler Error')
     hold on;
-    loglog(h_avg_list_FE,k_FE_h*h_avg_list_FE.^p_FE_h,"b")
+    loglog(h_avg_list_FE,k_FE_h*h_avg_list_FE.^p_FE_h,"b", 'DisplayName','Fit Line')
 
     title("Global Truncation Error vs Number of Function Calls"); xlabel("step size h"); ylabel("global error")
     legend("Location","best"); hold off
@@ -192,7 +213,7 @@ function day_1()
     figure();
     loglog(num_evals_list_FE,tr_error_list_FE,"r")
     hold on;
-    loglog(num_evals_list_FE,k_FE_ne*num_evals_list_FE.^p_FE_ne,"b")
+    loglog(num_evals_list_FE,k_FE_ne*num_evals_list_FE.^p_FE_ne,"b", 'DisplayName','Fit Line')
 
     title("Global Truncation Error vs Number of Function Calls"); xlabel("number of function calls"); ylabel("global error")
     legend("Location","best"); hold off

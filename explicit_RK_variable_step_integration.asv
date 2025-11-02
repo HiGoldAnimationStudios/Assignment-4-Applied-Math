@@ -28,8 +28,8 @@ function [t_list,X_list,h_avg, num_evals] = explicit_RK_variable_step_integratio
         redo = true;
         while redo == true
             h_rec(end+1,:) = h;
-            [XB, temp_num_evals, h, redo] = explicit_RK_variable_step(rate_func_in, t_list(k), XA, h, BT_struct, p, error_desired);
-            num_evals = num_evals + temp_num_evals;
+            [XB, add_evals, h, redo] = step_func(rate_func_in, t_list(k), XA, h, BT_struct, p, error_desired);
+            num_evals = num_evals + add_evals;
         end
         X_list(:,k+1) = XB; XA = XB;
     end

@@ -25,9 +25,14 @@
 function [XB, num_evals, h_next, redo] = explicit_RK_variable_step...
 (rate_func_in,t,XA,h,BT_struct,p,error_desired)
     %your code here
-    num_evals=0;
-    [XB1,XB2,num_evals_temp]=RK_step_embedded(rate_func_in,t,XA,h,BT_struct);
-    num_evals=num_evals_temp+num_evals;
-    alpha=1.5;
-    h_next=min(0.9*(error_desired/(abs(XB1,XB2)))^(1/p),alpha);
+    alpha = 1.5; %[1.5-10]
+    redo = false;
+    [XB1, XB2, num_evals] = RK_step_embedded(rate_func_in,t,XA,h,BT_struct);
+    err = norm(XB1-XB2);
+    temp = (error_desired/err).^(1/p);
+    h_next = min(0.9*temp, alpha)*h;
+    XB = XB1;
+    if error_desired < err
+        redo = true;
+    end
 end
