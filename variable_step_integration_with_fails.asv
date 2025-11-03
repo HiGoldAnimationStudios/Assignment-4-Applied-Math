@@ -1,6 +1,9 @@
-function [t_list, X_list, h_avg, num_fails, num_evals, h_rec] = variable_step_integration_with_fails(rate_func_in, tspan, X0, h_ref, BT_struct, p, error_desired)
+function [t_list, X_list, h_avg, num_fails, num_evals, h_rec] = variable_step_integration_with_fails(rate_func_in, step_func, tspan, X0, h_ref, BT_struct, p, error_desired)
+    N=ceil();
+    h_avg=(tspan(2)-tspan(1))/N;
+
     ti = tspan(1); tf = tspan(2);
-    N  = ceil((tspan(2)-tspan(1))/h_ref); 
+    N  = ceil((tf - ti)/h_ref); 
     h = (tf - ti)/N;
     nx = numel(X0); 
     t_list = 1; t_list(1) = ti;
@@ -14,7 +17,7 @@ function [t_list, X_list, h_avg, num_fails, num_evals, h_rec] = variable_step_in
         while redo == true
             h_prev = h;
             h = min(h,tf-t+1e-15);
-            [XB, add_evals, h, redo] = explicit_RK_variable_step(rate_func_in, t, XA, h, BT_struct, p, error_desired);
+            [XB, add_evals, h, redo] = step_func(rate_func_in, t, XA, h, BT_struct, p, error_desired);
             if redo == true
                 num_fails = num_fails+1;
             end

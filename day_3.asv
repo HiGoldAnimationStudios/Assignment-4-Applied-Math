@@ -29,7 +29,49 @@ function day_3()
     %test working
     des_err = 1e-5;
     [t_list,X_list,h_avg, num_evals, fail_rate, h_rec] = variable_step_integration_with_fails(my_rate_func, tspan, V0, h0, DormandPrince, 5, des_err);
+
+    tforV = linspace(ti,tf, 366);
+    V_list = compute_planetary_motion(tforV, V0, orbit_params);
+
+    figure
+    % subplot(2,1,1)
+    hold on
+    plot(tforV, V_list(:,1), 'b', "DisplayName", "Secant Method")
+    % plot(t_list, X_list(1,:), "r--", "DisplayName", "Dormand-Prince")
+
+    plot(t_list, X_list(1,:), "k-", "DisplayName", "Dormand-Prince",'LineWidth',1);
+    plot(t_list, X_list(1,:), "ro",'markerfacecolor','r', "DisplayName", "Dormand-Prince",'markersize',4);
     
+    % xlim([min(t_list),max(t_list)])
+    % legend()
+    % title('x position over time - runge-kutta')
+    % subplot(2,1,2)
+    % plot(tforV, V_list(:,1), 'b', "DisplayName", "Secant Method")
+    xlim([min(t_list),max(t_list)])
+    legend()
+    title('x position over time - secant')
+
+    figure
+    subplot(2,1,1)
+    plot(X_list(1,:), X_list(2,:), "r--", "DisplayName", "Dormand-Prince")
+    legend()
+    title('y vs x position of earth - runge-kutta')
+    subplot(2,1,2)
+    plot(V_list(:,1), V_list(:,2), 'b', "DisplayName", "Secant Method")
+    legend()
+    title('y vs x position of earth - secant')
+
+
+    figure
+    hold on
+    plot(X_list(1,:), X_list(2,:), "k", "DisplayName", "Dormand-Prince",'LineWidth',1)
+    plot(X_list(1,:), X_list(2,:), "ro", "DisplayName", "Dormand-Prince",'MarkerFaceColor','r','MarkerSize',4)
+    plot(V_list(:,1), V_list(:,2), 'b', "DisplayName", "Secant Method")
+    plot(0,0, 'ko','MarkerFaceColor','k','MarkerSize',4)
+    axis equal
+    legend()
+    title('y vs x position of earth')
+
     h_ref_list = logspace(-5,-1, 30);
     num_evals_list = [];
     h_avg_list = [];

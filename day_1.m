@@ -54,64 +54,76 @@ function day_1()
     9017/3168, -355/33, 46732/5247, 49/176, -5103/18656, 0,0;...
     35/384, 0, 500/1113, 125/192, -2187/6784, 11/84,0];
 
+    
+
     BT_struct = Forward_Euler;
     
     [t_list_FE,X_list_FE,h_avg_FE, num_evals_FE] = explicit_RK_fixed_step_integration(my_rate_func,tspan,V0,h_ref,BT_struct);
 
+    %{
     figure(); 
     subplot(2,1,1); hold on;
-    plot(t_range,V_list(:,1),"r")
-    plot(t_range,V_list(:,2),"b")
-    plot(t_list_FE,X_list_FE(:,1),"r--")
-    plot(t_list_FE,X_list_FE(:,2),"b--")
+    plot(t_range,V_list(:,1),"r", "DisplayName","x exact position")
+    plot(t_range,V_list(:,2),"b", "DisplayName","y exact position")
+    plot(t_list_FE,X_list_FE(:,1),"r--", "DisplayName","x predicted position")
+    plot(t_list_FE,X_list_FE(:,2),"b--", "DisplayName","y predicted position")
     xlabel("time"); ylabel("pos"); title("Forward Euler Method")
+    legend("Location", "best")
 
     subplot(2,1,2);hold on;
-    plot(t_range,V_list(:,3),"r")
-    plot(t_range,V_list(:,4),"b")
-    plot(t_list_FE,X_list_FE(:,3),"r--")
-    plot(t_list_FE,X_list_FE(:,4),"b--")
+    plot(t_range,V_list(:,3),"r", "DisplayName","x exact velocity")
+    plot(t_range,V_list(:,4),"b", "DisplayName","y exact velocity")
+    plot(t_list_FE,X_list_FE(:,3),"r--", "DisplayName","x predicted velocity")
+    plot(t_list_FE,X_list_FE(:,4),"b--", "DisplayName","y predicted velocity")
     xlabel("time"); ylabel("velocity")
+    legend("Location", "best")
+    %}
 
     BT_struct=Explict_Midpoint;
 
     [t_list_EM,X_list_EM,h_avg_EM, num_evals_EM] = explicit_RK_fixed_step_integration(my_rate_func,tspan,V0,h_ref,BT_struct);
-
+    
+    %{
     figure(); 
     subplot(2,1,1); hold on;
-    plot(t_range,V_list(:,1),"r")
-    plot(t_range,V_list(:,2),"b")
-    plot(t_list_EM,X_list_EM(:,1),"r--")
-    plot(t_list_EM,X_list_EM(:,2),"b--")
+    plot(t_range,V_list(:,1),"r", "DisplayName","x exact position")
+    plot(t_range,V_list(:,2),"b", "DisplayName","y exact position")
+    plot(t_list_EM,X_list_EM(:,1),"r--", "DisplayName","x predicted position")
+    plot(t_list_EM,X_list_EM(:,2),"b--", "DisplayName","y predicted position")
     xlabel("time"); ylabel("pos"); title("Explicit Midpoint Method")
+    legend("Location", "best")
 
     subplot(2,1,2);hold on;
-    plot(t_range,V_list(:,3),"r")
-    plot(t_range,V_list(:,4),"b")
-    plot(t_list_EM,X_list_EM(:,3),"r--")
-    plot(t_list_EM,X_list_EM(:,4),"b--")
+    plot(t_range,V_list(:,3),"r", "DisplayName","x exact velocity")
+    plot(t_range,V_list(:,4),"b", "DisplayName","y exact velocity")
+    plot(t_list_EM,X_list_EM(:,3),"r--", "DisplayName","x predicted velocity")
+    plot(t_list_EM,X_list_EM(:,4),"b--", "DisplayName","y predicted velocity")
     xlabel("time"); ylabel("velocity")
+    legend("Location", "best")
+    %}
 
     BT_struct=Heun_Third;
     
-    [t_list_FE,X_list_FE,h_avg_FE, num_evals_FE] = explicit_RK_fixed_step_integration(my_rate_func,tspan,V0,h_ref,BT_struct);
+    [t_list_HM,X_list_HM,h_avg_HM, num_evals_HM] = explicit_RK_fixed_step_integration(my_rate_func,tspan,V0,h_ref,BT_struct);
 
+    %{
     figure(); 
     subplot(2,1,1); hold on;
-    plot(t_range,V_list(:,1),"r")
-    plot(t_range,V_list(:,2),"b")
-    plot(t_list_FE,X_list_FE(:,1),"r--")
-    plot(t_list_FE,X_list_FE(:,2),"b--")
+    plot(t_range,V_list(:,1),"r", "DisplayName","x exact position")
+    plot(t_range,V_list(:,2),"b", "DisplayName","y exact position")
+    plot(t_list_HM,X_list_HM(:,1),"r--", "DisplayName","x predicted position")
+    plot(t_list_HM,X_list_HM(:,2),"b--", "DisplayName","y predicted position")
     xlabel("time"); ylabel("pos"); title("Heun's Third Order Method")
     legend()
 
     subplot(2,1,2);hold on;
-    plot(t_range,V_list(:,3),"r")
-    plot(t_range,V_list(:,4),"b")
-    plot(t_list_FE,X_list_FE(:,3),"r--")
-    plot(t_list_FE,X_list_FE(:,4),"b--")
+    plot(t_range,V_list(:,3),"r", "DisplayName","x exact velocity")
+    plot(t_range,V_list(:,4),"b", "DisplayName","y exact velocity")
+    plot(t_list_HM,X_list_HM(:,3),"r--", "DisplayName","x predicted velocity")
+    plot(t_list_HM,X_list_HM(:,4),"b--", "DisplayName","y predicted velocity")
     xlabel("time"); ylabel("velocity")
     legend()
+    %}
 
     %Local Truncation Error
     n_samples=30;
@@ -232,7 +244,7 @@ function day_1()
     loglog(h_avg_list_HM,tr_error_list_HM,'o', 'MarkerSize',5, 'Color','g', 'DisplayName','Heun Third Error')
     loglog(h_avg_list_HM,k_HM_h*h_avg_list_HM.^p_HM_h,"g", 'DisplayName','Heun Third Fit Line')
 
-    title("Global Truncation Error vs Number of Function Calls"); xlabel("step size h"); ylabel("global error")
+    title("Global Truncation Error vs Step Size h"); xlabel("step size h"); ylabel("global error")
     legend("Location","best"); hold off
     
     figure();
@@ -277,6 +289,8 @@ function day_1()
     plot(t_list_EM, E_EM, "b--", 'DisplayName',"Explicit Midpoint")
     plot(t_list_HM, E_HM, "go", 'DisplayName',"Forward Euler")
     title("Mechanical Energy vs time")
+    xlabel("time (t)"); ylabel("mechanical energy (E)");
+    legend();
 
     figure()
     plot(t_list_FE, H_FE, "r", 'DisplayName',"Forward Euler")
@@ -284,4 +298,6 @@ function day_1()
     plot(t_list_EM, H_EM, "b--", 'DisplayName',"Explicit Midpoint")
     plot(t_list_HM, H_HM, "go", 'DisplayName',"Forward Euler")
     title("Angular Momentum vs time")
+    xlabel("time (t)"); ylabel("angular momentum (H)");
+    legend();
 end

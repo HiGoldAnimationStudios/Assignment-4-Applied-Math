@@ -1,4 +1,0 @@
-function[E, H] = physical_quantities(V, orbit_params)
-    E=0.5*orbit_params.m_planet*(V(3)^2+V(4)^2)-orbit_params.m_sun*orbit_params.m_planet*orbit_params.G/norm(orbit_params.);
-    H=orbit_params.m_planet(V(1)*V(4)-V(2)*V(3));
-end
