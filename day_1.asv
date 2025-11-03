@@ -1,8 +1,8 @@
 function day_1()
     orbit_params = struct();
     orbit_params.m_sun = 1;
-    orbit_params.m_planet = 1;
-    orbit_params.G = 40;
+    orbit_params.m_planet = 1/330000;
+    orbit_params.G = 4*pi^2/orbit_params.m_sun;
     x0 = 8;
     y0 = 0;
     dxdt0 = 0;
@@ -118,6 +118,7 @@ function day_1()
     h_ref_list=logspace(-6,1,n_samples);
     tr_error_list_FE=zeros(1,n_samples);
     tr_error_list_EM=zeros(1,n_samples);
+    tr_error_list_HM=zeros(1,n_samples);
 
     for n=1:length(h_ref_list)
         h_ref=h_ref_list(n);
@@ -131,7 +132,9 @@ function day_1()
         [XB,~]=explicit_RK_step(my_rate_func,tspan(1),V0,h_ref,BT_struct);
         tr_error_list_EM(n)=norm(XB-V_list);
         %Heun Third
-
+        BT_struct = Heun_Third;
+        [XB,~]=explicit_RK_step(my_rate_func,tspan(1),V0,h_ref,BT_struct);
+        tr_error_list_HM(n)=norm(XB-V_list);
     end
 
     filter_params=struct();
@@ -140,6 +143,7 @@ function day_1()
 
     [p_FE,k_FE]=loglog_fit(h_ref_list,tr_error_list_FE,filter_params)
     [p_EM,k_EM]=loglog_fit(h_ref_list,tr_error_list_EM,filter_params)
+    [p_HM,k_HM]=loglog_fit(h_ref_list,tr_error_list_HM,filter_params)
 
     hh = logspace(log10(min(h_ref_list)), log10(max(h_ref_list)), 200);
 
@@ -148,8 +152,10 @@ function day_1()
     loglog(h_ref_list,tr_error_list_FE,'o', 'MarkerSize',5, 'Color',[1 0 0], 'DisplayName','Forward Euler Error');
     hold on;
     loglog(hh, k_FE .*hh.^p_FE,'r', 'LineWidth',1, 'DisplayName', sprintf('Forward Euler fit: p=%.2f', p_FE));
-    loglog(h_ref_list,tr_error_list_EM,'o', 'MarkerSize',5, 'Color',[0 1 0], 'DisplayName','Explicit Midpoint Error');
-    loglog(hh, k_EM .*hh.^p_EM,'g', 'LineWidth',1, 'DisplayName', sprintf('Explicit Midpoint fit: p=%.2f', p_EM));
+    loglog(h_ref_list,tr_error_list_EM,'o', 'MarkerSize',5, 'Color',[0 0 1], 'DisplayName','Explicit Midpoint Error');
+    loglog(hh, k_EM .*hh.^p_EM,'b', 'LineWidth',1, 'DisplayName', sprintf('Explicit Midpoint fit: p=%.2f', p_EM));
+    loglog(h_ref_list,tr_error_list_HM,'o', 'MarkerSize',5, 'Color',[0 1 0], 'DisplayName','Heun Third Error');
+    loglog(hh, k_HM .*hh.^p_HM,'g', 'LineWidth',1, 'DisplayName', sprintf('Heun Third fit: p=%.2f', p_EM));
     title("Local Truncation Error"); xlabel("step size h"); ylabel("local error")
     legend("Location","best"); hold off
     
@@ -235,9 +241,30 @@ function day_1()
     loglog(num_evals_list_FE,k_FE_ne*num_evals_list_FE.^p_FE_ne,"r", 'DisplayName','Forward Euler Fit Line')
     loglog(num_evals_list_EM,tr_error_list_EM, 'o', 'MarkerSize',5, 'Color','b', 'DisplayName','Explicit Midpoint Error')
     loglog(num_evals_list_EM,k_EM_ne*num_evals_list_EM.^p_EM_ne,"b", 'DisplayName','Explicit Midpoint Fit Line')
-    loglog(num_evals_list_HM,tr_error_list_HM, 'o', 'MarkerSize',5, 'Color','b', 'DisplayName','Heun Third Error')
-    loglog(num_evals_list_HM,k_HM_ne*num_evals_list_HM.^p_HM_ne,"b", 'DisplayName','Explicit Midpoint Fit Line')
+    loglog(num_evals_list_HM,tr_error_list_HM, 'o', 'MarkerSize',5, 'Color','g', 'DisplayName','Heun Third Error')
+    loglog(num_evals_list_HM,k_HM_ne*num_evals_list_HM.^p_HM_ne,"g", 'DisplayName','Heun Third Fit Line')
 
     title("Global Truncation Error vs Number of Function Calls"); xlabel("number of function calls"); ylabel("global error")
     legend("Location","best"); hold off
+
+    %Conservation of Physical Quantities
+    orbit_params = struct();
+    orbit_params.m_sun = 1;
+    orbit_params.m_planet = 1/330000;
+    orbit_params.G = 4*pi^2/orbit_params.m_sun;
+    x0 = 8;
+    y0 = 0;
+    dxdt0 = 0;
+    dydt0 = 1.5;
+    
+    V0 = [x0;y0;dxdt0;dydt0];
+    t_range = linspace(0,10,1000);\
+    h=0.1;
+    
+    [t_list_FE, X_list_FE] = explicit_RK_fixed_step_integration(f, tspan, V0, h, Forward_Euler);
+    [E_FE,H_FE] = physical_quantities(X_list_FE, orbit_params);  S.FE.E = E; S.FE.H = H;
+   
+    figure()
+    plot(t_list_FE,)
+
 end

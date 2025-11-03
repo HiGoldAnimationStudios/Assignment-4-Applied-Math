@@ -1,8 +1,8 @@
 function day_1()
     orbit_params = struct();
     orbit_params.m_sun = 1;
-    orbit_params.m_planet = 1;
-    orbit_params.G = 40;
+    orbit_params.m_planet = 1/330000;
+    orbit_params.G = 4*pi^2/orbit_params.m_sun;
     x0 = 8;
     y0 = 0;
     dxdt0 = 0;
@@ -246,4 +246,42 @@ function day_1()
 
     title("Global Truncation Error vs Number of Function Calls"); xlabel("number of function calls"); ylabel("global error")
     legend("Location","best"); hold off
+
+    %Conservation of Physical Quantities
+    orbit_params = struct();
+    orbit_params.m_sun = 1;
+    orbit_params.m_planet = 1/330000;
+    orbit_params.G = 4*pi^2/orbit_params.m_sun;
+    x0 = 8;
+    y0 = 0;
+    dxdt0 = 0;
+    dydt0 = 1.5;
+    
+    V0 = [x0;y0;dxdt0;dydt0];
+    tspan=[0,10];
+    h=0.1;
+    my_rate_func = @(t_in, V_in) gravity_rate_func(t_in,V_in,orbit_params);
+    
+    [t_list_FE, X_list_FE] = explicit_RK_fixed_step_integration(my_rate_func, tspan, V0, h, Forward_Euler);
+    [E_FE,H_FE] = physical_quantities(X_list_FE, orbit_params); 
+
+    [t_list_EM, X_list_EM] = explicit_RK_fixed_step_integration(my_rate_func, tspan, V0, h, Explict_Midpoint);
+    [E_EM,H_EM] = physical_quantities(X_list_EM, orbit_params); 
+
+    [t_list_HM, X_list_HM] = explicit_RK_fixed_step_integration(my_rate_func, tspan, V0, h, Heun_Third);
+    [E_HM,H_HM] = physical_quantities(X_list_HM, orbit_params); 
+
+    figure()
+    plot(t_list_FE, E_FE, "r", 'DisplayName',"Forward Euler")
+    hold on
+    plot(t_list_EM, E_EM, "b--", 'DisplayName',"Explicit Midpoint")
+    plot(t_list_HM, E_HM, "go", 'DisplayName',"Forward Euler")
+    title("Mechanical Energy vs time")
+
+    figure()
+    plot(t_list_FE, H_FE, "r", 'DisplayName',"Forward Euler")
+    hold on
+    plot(t_list_EM, H_EM, "b--", 'DisplayName',"Explicit Midpoint")
+    plot(t_list_HM, H_HM, "go", 'DisplayName',"Forward Euler")
+    title("Angular Momentum vs time")
 end
