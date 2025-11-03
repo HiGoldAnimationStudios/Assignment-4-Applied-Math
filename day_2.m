@@ -1,4 +1,23 @@
 function day_2()
+    
+    clear all; 
+
+    orbit_params = struct();
+    orbit_params.m_sun = 1;
+    orbit_params.m_planet = 1;
+    orbit_params.G = 40;
+    x0 = 8;
+    y0 = 0;
+    dxdt0 = 0;
+    dydt0 = 1.5;
+    
+    V0 = [x0;y0;dxdt0;dydt0];
+    t_range = linspace(0,10,100);
+    V_list = compute_planetary_motion(t_range,V0,orbit_params);
+    
+    my_rate_func = @(t_in, V_in) gravity_rate_func(t_in,V_in,orbit_params);
+    tspan=[0,10];
+    h_ref=0.02;
 
     DormandPrince = struct();
     DormandPrince.C = [0, 1/5, 3/10, 4/5, 8/9, 1, 1];
@@ -12,28 +31,40 @@ function day_2()
     9017/3168, -355/33, 46732/5247, 49/176, -5103/18656, 0,0;...
     35/384, 0, 500/1113, 125/192, -2187/6784, 11/84,0];
     
-    t = 5;
-    XA = 1;
-    h = 0.5;
-    my_rate = @(t, XA) rate_func01(t,XA);
-    [XB1, XB2, num_evals] = RK_step_embedded(my_rate,t,XA,h,DormandPrince);
-    X = solution01(t+h) ;
-    XB_diff = norm(XB1 - XB2);
+    % [XB1, XB2, num_evals] = RK_step_embedded(my_rate,t,XA,h,DormandPrince);
+    % X = solution01(t+h) ;
+    % XB_diff = norm(XB1 - XB2);
 
 
     %plotting XB_diff vs h_ref_list at one specific time constant (t=1)
-    n_samples=160;
-    h_ref_list=logspace(-6,1,n_samples);
+    n_samples= 360;
+    h_ref_list=logspace(-6,2,n_samples);
     XB_diff_list = zeros(1,n_samples);
+    XB1_error = zeros(1,n_samples); 
+    XB2_error = zeros(1,n_samples);
+    XA_diff_list = zeros(1,n_samples);
 
-    t=1;
+    t=15;
     XA=solution01(t);
+    my_rate = @(t, XA) rate_func01(t,XA);
+
+
     for i = 1:length(h_ref_list)
         h = h_ref_list(i); 
         [XB1, XB2, ~] = RK_step_embedded(my_rate,t,XA,h,DormandPrince);
         %XB_diff vs h_ref_lis
         XB_diff = norm(XB1 - XB2);
         XB_diff_list(i) = XB_diff;
+
+        XA_h = solution01(t+h);
+
+        %XA_h - XB1
+        XB1_error(i) = norm(XB1 - XA_h);
+        %XA_h - XB2 
+        XB2_error(i) = norm(XB2 - XA_h);
+
+        %XA_diff
+        XA_diff_list(i) = norm(XA_h - XA);
     end 
     
     filter_params=struct();
@@ -42,7 +73,7 @@ function day_2()
     filter_params.max_xval=1e1;
     filter_params.min_xval=1e-1;
 
-    [p,k]=loglog_fit(h_ref_list,XB_diff_list,filter_params)   
+    [p,k] =  loglog_fit(h_ref_list,XB_diff_list,filter_params);   
 
     figure(); 
     loglog(h_ref_list, XB_diff_list, "r", "DisplayName", "XB2-XB1")
@@ -50,5 +81,21 @@ function day_2()
     loglog(h_ref_list,k*h_ref_list.^p,"b", 'DisplayName','Fit Line')
     xlabel("h_r_e_f")
     ylabel("XB2-XB1")
-    title("Difference in XBs vs h_r_e_f at time t=1")
+    title("Difference in XBs vs h_r_e_f at time t=" + t)
+    xlim([10e-4,10]);
+    ylim([10e-20,10e10]);
+    
+    figure();
+    loglog(h_ref_list, XB_diff_list, "DisplayName", "XB2-XB1")
+    hold on;
+    loglog(h_ref_list, XB1_error, "DisplayName", "XB1 Local Error")
+    loglog(h_ref_list, XB2_error, "DisplayName", "XB2 Local Error")
+    loglog(h_ref_list, XA_diff_list, "DisplayName", "XA_h - XA")
+    legend();
+    xlabel("h_r_e_f")
+    ylabel("XB2-XB1")
+    title("Difference in XBs local erros vs h_r_e_f at time t=" + t)
+    
+
+
 end 
