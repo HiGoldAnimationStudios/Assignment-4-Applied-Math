@@ -289,7 +289,7 @@ function day_1()
     plot(t_list_FE, E_FE, "r", 'DisplayName',"Forward Euler")
     hold on
     plot(t_list_EM, E_EM, "b--", 'DisplayName',"Explicit Midpoint")
-    plot(t_list_HM, E_HM, "go", 'DisplayName',"Forward Euler")
+    plot(t_list_HM, E_HM, "go", 'DisplayName',"Heun's Third")
     title("Mechanical Energy vs time")
     xlabel("time (t)"); ylabel("mechanical energy (E)");
     legend();
@@ -298,7 +298,7 @@ function day_1()
     plot(t_list_FE, H_FE, "r", 'DisplayName',"Forward Euler")
     hold on
     plot(t_list_EM, H_EM, "b--", 'DisplayName',"Explicit Midpoint")
-    plot(t_list_HM, H_HM, "go", 'DisplayName',"Forward Euler")
+    plot(t_list_HM, H_HM, "go", 'DisplayName',"Heun's Third")
     title("Angular Momentum vs time")
     xlabel("time (t)"); ylabel("angular momentum (H)");
     legend();
