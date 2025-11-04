@@ -28,18 +28,25 @@ function day_3()
     %h0 = 1;
     %test working
     des_err = 1e-5;
-    [t_list,X_list,h_avg, num_evals, fail_rate, h_rec] = variable_step_integration_with_fails(my_rate_func, tspan, V0, h0, DormandPrince, 5, des_err);
-    
+    [t_list,X_list,h_avg, num_evals, num_fails, h_rec] = variable_step_integration_with_fails(my_rate_func, tspan, V0, h0, DormandPrince, 5, des_err);
+
+    figure
+    hold on
+    plot(X_list(1,:), X_list(2,:), "r", "DisplayName", "Dormand-Prince Aprroximation of Planet Path",'LineWidth',1)
+    plot(0,0, 'ko','MarkerFaceColor','y','MarkerSize',10, "DisplayName","Sun Position")
+    axis equal
+    xlabel("x position")
+    ylabel("y position")
+    legend("Location","best")
+    title('Position of the Planet')
+
     h_ref_list = logspace(-5,-1, 30);
     num_evals_list = [];
     h_avg_list = [];
     tr_error_list = [];
 
-    % time vs h - is step size changing dynamically?
-    figure
-    hold on
-    plot(t_list(1:end-1), h_rec(1:end),'k','LineWidth',1)
-    plot(t_list(1:end-1), h_rec(1:end),'ro','MarkerFaceColor','r','MarkerSize',5)
+
+    fail_rate_list=[];
 
     %for your chosen method, do the following... (variable runge kutta)
     n_samples = 60;
@@ -61,6 +68,10 @@ function day_3()
         approx_diff_list(i) = norm(XB1-XB2);
         tr_error_list1(i) = norm(XB1-V_list);
         tr_error_list2(i) = norm(XB2-V_list);
+
+        [t_list,X_list,h_avg, num_evals, num_fails, h_rec] = variable_step_integration_with_fails(my_rate_func, tspan, V0, h_ref, DormandPrince, 5, des_err);
+        fail_rate_list(end+1)=num_fails/num_evals;
+        h_avg_list(end+1)=h_avg;
     end
 
     figure
@@ -81,4 +92,11 @@ function day_3()
     loglog(approx_diff_list, approx_diff_list, 'k--', DisplayName='(XB1-XB2)')
     title(['XB1 and XB2 ', char(949), '_{local}' ' vs (XB1-XB2)'])
 
+
+    figure()
+    plot(h_avg_list, fail_rate_list)
+    xlabel("h_a_v_g")
+    ylabel("fail_rate")
+    title("Failure rate vs Average step size")
+    legend("Location","best")
 end

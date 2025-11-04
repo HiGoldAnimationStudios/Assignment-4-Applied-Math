@@ -153,6 +153,8 @@ function day_1()
     filter_params.min_y_val=1e-13;
     filter_params.max_y_val=1e-6;
 
+    filter_params.min_xval=10^(-3);
+
     [p_FE,k_FE]=loglog_fit(h_ref_list,tr_error_list_FE,filter_params)
     [p_EM,k_EM]=loglog_fit(h_ref_list,tr_error_list_EM,filter_params)
     [p_HM,k_HM]=loglog_fit(h_ref_list,tr_error_list_HM,filter_params)
@@ -167,7 +169,7 @@ function day_1()
     loglog(h_ref_list,tr_error_list_EM,'o', 'MarkerSize',5, 'Color',[0 0 1], 'DisplayName','Explicit Midpoint Error');
     loglog(hh, k_EM .*hh.^p_EM,'b', 'LineWidth',1, 'DisplayName', sprintf('Explicit Midpoint fit: p=%.2f', p_EM));
     loglog(h_ref_list,tr_error_list_HM,'o', 'MarkerSize',5, 'Color',[0 1 0], 'DisplayName','Heun Third Error');
-    loglog(hh, k_HM .*hh.^p_HM,'g', 'LineWidth',1, 'DisplayName', sprintf('Heun Third fit: p=%.2f', p_EM));
+    loglog(hh, k_HM .*hh.^p_HM,'g', 'LineWidth',1, 'DisplayName', sprintf('Heun Third fit: p=%.2f', p_HM));
     title("Local Truncation Error"); xlabel("step size h"); ylabel("local error")
     legend("Location","best"); hold off
     

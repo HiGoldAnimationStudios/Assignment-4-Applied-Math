@@ -78,12 +78,13 @@ function day_2()
     figure(); 
     loglog(h_ref_list, XB_diff_list, "r", "DisplayName", "XB2-XB1")
     hold on;
-    loglog(h_ref_list,k*h_ref_list.^p,"b", 'DisplayName','Fit Line')
+    loglog(h_ref_list,k*h_ref_list.^p,"b--", 'DisplayName','Fit Line')
     xlabel("h_r_e_f")
     ylabel("XB2-XB1")
     title("Difference in XBs vs h_r_e_f at time t=" + t)
     xlim([10e-4,10]);
     ylim([10e-20,10e10]);
+    legend();
     
     figure();
     loglog(h_ref_list, XB_diff_list, "DisplayName", "XB2-XB1")
@@ -96,6 +97,12 @@ function day_2()
     ylabel("XB2-XB1")
     title("Difference in XBs local erros vs h_r_e_f at time t=" + t)
     
-
-
+    figure();
+    loglog(XB_diff_list, XB1_error,"r", "DisplayName", "XB1")
+    hold on;
+    loglog(XB_diff_list, XB2_error,"b", "DisplayName", "XB2")
+    legend();
+    xlabel("XB2-XB1")
+    ylabel("XB error")
+    title("Local truncation errors vs the difference in XBs")
 end 

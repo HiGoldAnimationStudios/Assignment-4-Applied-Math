@@ -28,60 +28,25 @@ function day_3()
     %h0 = 1;
     %test working
     des_err = 1e-5;
-    [t_list,X_list,h_avg, num_evals, fail_rate, h_rec] = variable_step_integration_with_fails(my_rate_func, tspan, V0, h0, DormandPrince, 5, des_err);
-
-    tforV = linspace(ti,tf, 366);
-    V_list = compute_planetary_motion(tforV, V0, orbit_params);
-
-    figure
-    % subplot(2,1,1)
-    hold on
-    plot(tforV, V_list(:,1), 'b', "DisplayName", "Secant Method")
-    % plot(t_list, X_list(1,:), "r--", "DisplayName", "Dormand-Prince")
-
-    plot(t_list, X_list(1,:), "k-", "DisplayName", "Dormand-Prince",'LineWidth',1);
-    plot(t_list, X_list(1,:), "ro",'markerfacecolor','r', "DisplayName", "Dormand-Prince",'markersize',4);
-    
-    % xlim([min(t_list),max(t_list)])
-    % legend()
-    % title('x position over time - runge-kutta')
-    % subplot(2,1,2)
-    % plot(tforV, V_list(:,1), 'b', "DisplayName", "Secant Method")
-    xlim([min(t_list),max(t_list)])
-    legend()
-    title('x position over time - secant')
-
-    figure
-    subplot(2,1,1)
-    plot(X_list(1,:), X_list(2,:), "r--", "DisplayName", "Dormand-Prince")
-    legend()
-    title('y vs x position of earth - runge-kutta')
-    subplot(2,1,2)
-    plot(V_list(:,1), V_list(:,2), 'b', "DisplayName", "Secant Method")
-    legend()
-    title('y vs x position of earth - secant')
-
+    [t_list,X_list,h_avg, num_evals, num_fails, h_rec] = variable_step_integration_with_fails(my_rate_func, tspan, V0, h0, DormandPrince, 5, des_err);
 
     figure
     hold on
-    plot(X_list(1,:), X_list(2,:), "k", "DisplayName", "Dormand-Prince",'LineWidth',1)
-    plot(X_list(1,:), X_list(2,:), "ro", "DisplayName", "Dormand-Prince",'MarkerFaceColor','r','MarkerSize',4)
-    plot(V_list(:,1), V_list(:,2), 'b', "DisplayName", "Secant Method")
-    plot(0,0, 'ko','MarkerFaceColor','k','MarkerSize',4)
+    plot(X_list(1,:), X_list(2,:), "r", "DisplayName", "Dormand-Prince Aprroximation of Planet Path",'LineWidth',1)
+    plot(0,0, 'ko','MarkerFaceColor','y','MarkerSize',10, "DisplayName","Sun Position")
     axis equal
-    legend()
-    title('y vs x position of earth')
+    xlabel("x position")
+    ylabel("y position")
+    legend("Location","best")
+    title('Position of the Planet')
 
     h_ref_list = logspace(-5,-1, 30);
     num_evals_list = [];
     h_avg_list = [];
     tr_error_list = [];
 
-    % time vs h - is step size changing dynamically?
-    figure
-    hold on
-    plot(t_list(1:end-1), h_rec(1:end),'k','LineWidth',1)
-    plot(t_list(1:end-1), h_rec(1:end),'ro','MarkerFaceColor','r','MarkerSize',5)
+
+    fail_rate_list=[];
 
     %for your chosen method, do the following... (variable runge kutta)
     n_samples = 60;
@@ -103,6 +68,9 @@ function day_3()
         approx_diff_list(i) = norm(XB1-XB2);
         tr_error_list1(i) = norm(XB1-V_list);
         tr_error_list2(i) = norm(XB2-V_list);
+
+        [t_list,X_list,h_avg, num_evals, num_fails, h_rec] = variable_step_integration_with_fails(my_rate_func, tspan, V0, h_ref, DormandPrince, 5, des_err);
+        fail_rate_list(i)=num_fails/num_evals;
     end
 
     figure
@@ -123,4 +91,11 @@ function day_3()
     loglog(approx_diff_list, approx_diff_list, 'k--', DisplayName='(XB1-XB2)')
     title(['XB1 and XB2 ', char(949), '_{local}' ' vs (XB1-XB2)'])
 
+
+    figure()
+    loglog(h_ref_list, fail_rate_list)
+    xlabel("h_r_e_f")
+    ylabel("fail_rate")
+    title("")
+    legend()
 end
