@@ -1,6 +1,6 @@
 function day_2()
     
-    clear all; 
+    clear fig; 
 
     orbit_params = struct();
     orbit_params.m_sun = 1;
@@ -38,7 +38,7 @@ function day_2()
 
     %plotting XB_diff vs h_ref_list at one specific time constant (t=1)
     n_samples= 360;
-    h_ref_list=logspace(-6,2,n_samples);
+    h_ref_list=logspace(-3,2,n_samples);
     XB_diff_list = zeros(1,n_samples);
     XB1_error = zeros(1,n_samples); 
     XB2_error = zeros(1,n_samples);
@@ -73,12 +73,14 @@ function day_2()
     filter_params.max_xval=1e1;
     filter_params.min_xval=1e-1;
 
-    [p,k] =  loglog_fit(h_ref_list,XB_diff_list,filter_params);   
+    [p_XB1,~] =  loglog_fit(h_ref_list,XB1_error,filter_params);   
+    [p_XB2,~] =  loglog_fit(h_ref_list,XB2_error,filter_params);   
+    [p_XB_diff,k] =  loglog_fit(h_ref_list,XB_diff_list,filter_params);   
 
     figure(); 
     loglog(h_ref_list, XB_diff_list, "r", "DisplayName", "XB2-XB1")
     hold on;
-    loglog(h_ref_list,k*h_ref_list.^p,"b--", 'DisplayName','Fit Line')
+    loglog(h_ref_list,k*h_ref_list.^p_XB_diff,"b--", 'DisplayName','Fit Line')
     xlabel("h_r_e_f")
     ylabel("XB2-XB1")
     title("Difference in XBs vs h_r_e_f at time t=" + t)
@@ -87,15 +89,15 @@ function day_2()
     legend();
     
     figure();
-    loglog(h_ref_list, XB_diff_list, "DisplayName", "XB2-XB1")
+    loglog(h_ref_list, XB_diff_list, "DisplayName", "XB2-XB1 p = " + p_XB_diff)
     hold on;
-    loglog(h_ref_list, XB1_error, "DisplayName", "XB1 Local Error")
-    loglog(h_ref_list, XB2_error, "DisplayName", "XB2 Local Error")
+    loglog(h_ref_list, XB1_error, "DisplayName", "XB1 Local Error p = " + p_XB1)
+    loglog(h_ref_list, XB2_error, "DisplayName", "XB2 Local Error p = " + p_XB2)
     loglog(h_ref_list, XA_diff_list, "DisplayName", "XA_h - XA")
-    legend();
+    legend('Location', 'southeast');
     xlabel("h_r_e_f")
-    ylabel("XB2-XB1")
-    title("Difference in XBs local erros vs h_r_e_f at time t=" + t)
+    ylabel("Local Error")
+    title("Difference in XBs local errors vs h_r_e_f at time t=" + t)
     
     figure();
     loglog(XB_diff_list, XB1_error,"r", "DisplayName", "XB1")
