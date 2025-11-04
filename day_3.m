@@ -1,54 +1,77 @@
-function day_3()
+function day_3() 
+    clear all
     orbit_params = struct();
     orbit_params.m_sun = 1;
     orbit_params.m_planet = 1/330000;
     orbit_params.G = 4*pi^2/orbit_params.m_sun;
     ti = 0;
-    % tf = 10;
-    tf = 100;
-    % V0 = [1; 0; 0; 6.28;];
+    tf = 27;
     V0 = [1.8; 0; 0; 6.28;];
 
-    DormandPrince = struct();
-    DormandPrince.C = [0, 1/5, 3/10, 4/5, 8/9, 1, 1];
-    DormandPrince.B = [35/384, 0, 500/1113, 125/192, -2187/6784, 11/84, 0;...
-    5179/57600, 0, 7571/16695, 393/640, -92097/339200, 187/2100, 1/40];
-    DormandPrince.A = [0,0,0,0,0,0,0;
-    1/5, 0, 0, 0,0,0,0;...
-    3/40, 9/40, 0, 0, 0, 0,0;...
-    44/45, -56/15, 32/9, 0, 0, 0,0;...
-    19372/6561, -25360/2187, 64448/6561, -212/729, 0, 0,0;...
-    9017/3168, -355/33, 46732/5247, 49/176, -5103/18656, 0,0;...
-    35/384, 0, 500/1113, 125/192, -2187/6784, 11/84,0];
+    Fehlberg = struct();
+    Fehlberg.C = [0, 1/4, 3/8, 12/13, 1, 1/2];
+    Fehlberg.B = [16/135, 0, 6656/12825, 28561/56430, -9/50, 2/55;...
+    25/216, 0, 1408/2565, 2197/4104, -1/5, 0];
+    Fehlberg.A = [0,0,0,0,0,0;...
+    1/4, 0,0,0,0,0;...
+    3/32, 9/32, 0,0,0,0;...
+    1932/2197, -7200/2197, 7296/2197, 0,0,0;...
+    439/216, -8, 3680/513, -845/4104, 0,0;...
+    -8/27, 2, -3544/2565, 1859/4104, -11/40, 0];
 
     tspan = [ti,tf];
-    my_rate_func = @(t, V) gravity_rate_func(t, V, orbit_params);
+    gravity_wrapper = @(t, V) gravity_rate_func(t, V, orbit_params);
 
-    h0 = 0.1;
-    %h0 = 1;
-    %test working
-    des_err = 1e-5;
-    [t_list,X_list,h_avg, num_evals, num_fails, h_rec] = variable_step_integration_with_fails(my_rate_func, tspan, V0, h0, DormandPrince, 5, des_err);
+    h0 = 2.8;
+    des_err = 10^-6;
+    [t_list_var,X_list_var,h_avg_var, num_evals_var, fail_rate_var, h_rec] = explicit_RK_variable_step_integration(gravity_wrapper, tspan, V0, h0, Fehlberg, 5, des_err);
+    t_linspace = linspace(ti,tf, 366);
+    V_list = compute_planetary_motion(t_linspace, V0, orbit_params);
+    global_trunc_var = norm(V_list(end,:)'-X_list_var(:,end))
+    h_avg_var
+    num_evals_var
+    fail_rate_var
+
+    [t_list_fix,X_list_fix,h_avg_fix,num_evals_fix] = explicit_RK_fixed_step_integration(gravity_wrapper,tspan,V0,h_avg_var,Fehlberg);
+    global_trunc_fix = norm(V_list(end,:)-X_list_fix(:,end))
+    h_avg_fix
+    num_evals_fix
 
     figure
     hold on
-    plot(X_list(1,:), X_list(2,:), "r", "DisplayName", "Dormand-Prince Aprroximation of Planet Path",'LineWidth',1)
-    plot(0,0, 'ko','MarkerFaceColor','y','MarkerSize',10, "DisplayName","Sun Position")
-    axis equal
-    xlabel("x position")
-    ylabel("y position")
-    legend("Location","best")
-    title('Position of the Planet')
+    plot(X_list_var(1,:), X_list_var(2,:), "ro",'markerfacecolor','r', "DisplayName", "Fehlberg (Var)",'markersize',4);
+    plot(X_list_fix(1,:), X_list_fix(2,:), "bo",'markerfacecolor','b', "DisplayName", "Fehlberg (Fix)",'markersize',2);
+    plot(V_list(:,1), V_list(:,2), 'k', "DisplayName", "Actual Solution")
+    plot(0,0, '-o', 'MarkerFaceColor', 'y', 'MarkerEdgeColor', 'k', "DisplayName","Sun")
+    legend("Location","Best")
+    title('y vs x position of planet')
+    
+    
+    figure
+    subplot(2,1,1)
+    plot(X_list_var(1,:),X_list_var(2,:),'ro-','markerfacecolor','k','markeredgecolor','k','markersize',2, "DisplayName", "Position")
+    legend()
+    title('y vs x Position of Body - Fehlberg')
+    subplot(2,1,2)
+    plot(V_list(:,1), V_list(:,2),'ro-','markerfacecolor','k','markeredgecolor','k','markersize',2, "DisplayName", "Velocity")
+    legend()
+    title('y vs x Velocity of Body - Fehlberg')
+
+    %Step Size vs. Distance Between Planet and Sun
+    % h_list = diff(t_list_var);
+    figure
+    x2s = X_list_var(1,1:end-1).^2;
+    y2s = X_list_var(2,1:end-1).^2;
+    dists = (x2s+y2s).^0.5;
+    semilogx(h_rec, dists, 'ro-','markerfacecolor','k','markeredgecolor','k','markersize',2)
+    xlabel('Step Size')
+    ylabel('Distance Between Planet and Sun')
+    title('Step Size vs. Distance Between Planet and Sun')
 
     h_ref_list = logspace(-5,-1, 30);
     num_evals_list = [];
     h_avg_list = [];
     tr_error_list = [];
-
-
-    fail_rate_list=[];
-
-    %for your chosen method, do the following... (variable runge kutta)
     n_samples = 60;
     h_ref_list = logspace(-3, 1, n_samples);
 
@@ -61,42 +84,80 @@ function day_3()
         h_ref = h_ref_list(i);
         V_list = compute_planetary_motion(ti+h_ref,V0,orbit_params);
         % V_next = gravity_rate_func(t,V,orbit_params)
-        [XB1, XB2, ~] = RK_step_embedded(my_rate_func, ti, V0, h_ref, DormandPrince);
+        [XB1, XB2, ~] = RK_step_embedded(gravity_wrapper, ti, V0, h_ref, Fehlberg);
         % XB1s(:, i) = XB1';
         % XB2s(:, i) = XB2';
         abs_diff_list(i) = norm(V_list-V0);
         approx_diff_list(i) = norm(XB1-XB2);
         tr_error_list1(i) = norm(XB1-V_list);
         tr_error_list2(i) = norm(XB2-V_list);
-
-        [t_list,X_list,h_avg, num_evals, num_fails, h_rec] = variable_step_integration_with_fails(my_rate_func, tspan, V0, h_ref, DormandPrince, 5, des_err);
-        fail_rate_list(end+1)=num_fails/num_evals;
-        h_avg_list(end+1)=h_avg;
     end
 
+    %global truncation error
+    des_err_list = logspace(-15, -.5, 150);
+    V_list = compute_planetary_motion(tf,V0,orbit_params);
+    abs_diff_var = zeros(length(des_err_list),1);
+    abs_diff_fix = zeros(length(des_err_list),1);
+    havgs_var = zeros(length(des_err_list),1);
+    havgs_fix = zeros(length(des_err_list),1);
+    num_evals_var_list = zeros(length(des_err_list),1);
+    num_evals_fix_list = zeros(length(des_err_list),1);
+    fail_rate_var_list = zeros(length(des_err_list),1); 
+    for i = 1:length(des_err_list)
+        des_err = des_err_list(i);
+        [t_list_var,X_list_var,h_avg_var, num_evals_var, fail_rate_var, h_rec] = explicit_RK_variable_step_integration(gravity_wrapper, tspan, V0, 0.1, Fehlberg, 5, des_err);
+        abs_diff_var(i) = norm(V_list-X_list_var(:,end));
+        havgs_var(i) = h_avg_var;
+        num_evals_var_list(i) = num_evals_var;
+        fail_rate_var_list(i) = fail_rate_var;
+        [t_list_fix,X_list_fix,h_avg_fix,num_evals_fix] = explicit_RK_fixed_step_integration(gravity_wrapper,tspan,V0,h_avg_var,Fehlberg);
+        abs_diff_fix(i) = norm(V_list-X_list_fix(:,end));
+        havgs_fix(i) = h_avg_fix;
+        num_evals_fix_list(i) = num_evals_fix;
+    end
+
+    %Global Truncation Error vs. Step Size
     figure
-    %fix - global error
-    loglog(h_ref_list, abs_diff_list, DisplayName='f(t+h)-f(t)')
+    loglog(havgs_fix, abs_diff_fix,'r', DisplayName='Fixed Step')
     hold on
-    loglog(h_ref_list, approx_diff_list, DisplayName='XB2-XB1')
-    loglog(h_ref_list, tr_error_list1, DisplayName=['XB1 ' char(949) '_{local}'])
-    loglog(h_ref_list, tr_error_list2, DisplayName=['XB2 ' char(949) '_{local}'])
-    legend(Location='southeast')
+    loglog(havgs_var, abs_diff_var,'b', DisplayName='Variable Step')
+    axis auto
+    xlabel('Average Step Size (h)')
+    ylabel('Global Truncation Error')
+    title('Global Truncation Error vs. Step Size')
+    legend(location="best")
 
-    
-    % Plot the local truncation errors of XB1 and XB2 as a function of their difference, |XB1 − XB2|
+    %Global Truncation Error vs. Number of Function Evaluations
     figure
-    loglog(approx_diff_list, tr_error_list1, DisplayName=['XB1 ' char(949) '_{local}'])
+    loglog(num_evals_fix_list, abs_diff_fix,'r', DisplayName='Fixed Step')
     hold on
-    loglog(approx_diff_list, tr_error_list2, DisplayName=['XB2 ' char(949) '_{local}'])
-    loglog(approx_diff_list, approx_diff_list, 'k--', DisplayName='(XB1-XB2)')
-    title(['XB1 and XB2 ', char(949), '_{local}' ' vs (XB1-XB2)'])
+    loglog(num_evals_var_list, abs_diff_var,'b', DisplayName='Variable Step')
+    axis auto
+    xlabel('Number of Function Evaluations')
+    ylabel('Global Truncation Error')
+    title('Global Truncation Error vs. Number of Function Evaluations')
+    legend(location="best")
+
+    %Failure Rate vs. Step Size
+    figure
+    semilogx(havgs_var, fail_rate_var_list, DisplayName='Fehlberg')
+    axis auto
+    xlabel('Step Size')
+    ylabel('Failure Rate')
+    title('Failure Rate vs. Step Size')
+    legend(location="best")
 
 
-    figure()
-    plot(h_avg_list, fail_rate_list)
-    xlabel("h_a_v_g")
-    ylabel("fail_rate")
-    title("Failure rate vs Average step size")
-    legend("Location","best")
+    hfilt = h_ref_list<10^-1.5 & h_ref_list>10^-2;
+    hfiltered = h_ref_list(hfilt);
+    tr1filtered = tr_error_list1(hfilt);
+    tr2filtered = tr_error_list2(hfilt);
+    difffiltered = approx_diff_list(hfilt);
+    [p_xb1,k_xb1] = loglog_fit(hfiltered, tr1filtered);
+    [p_xb2,k_xb2] = loglog_fit(hfiltered, tr2filtered);
+    [p_xb12,k_xb12] = loglog_fit(hfiltered, difffiltered);
+    % fprintf('\n  Fitted slopes p for error vs h  \n');
+    % fprintf('  %-14s  p ≈ %6.3f\n', 'XB1 local truncation error', p_xb1);
+    % fprintf('  %-14s  p ≈ %6.3f\n', 'XB2 local truncation error', p_xb2);
+    % fprintf('  %-14s  p ≈ %6.3f\n', 'XB1-XB2 error approximation',p_xb12);
 end
